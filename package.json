@@ -1,0 +1,26 @@
+{
+  "name": "adventofcode2021",
+  "version": "1.0.0",
+  "description": "Advent of Code 2021 solutions in javascript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amatla/adventOfCode2021.git"
+  },
+  "author": "amatla",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/amatla/adventOfCode2021/issues"
+  },
+  "homepage": "https://github.com/amatla/adventOfCode2021#readme",
+  "devDependencies": {
+    "eslint": "^8.4.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.25.3",
+    "prettier": "2.5.1"
+  }
+}
