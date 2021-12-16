@@ -1,48 +1,41 @@
 const fs = require('fs');
 
-// const test = fs
-//   .readFileSync('./test.txt')
-//   .toString('utf-8')
-//   .trim()
-//   .split('\n\n');
+/**
+ * Format input file in two arrays.
+ * numbers contains the bingo numbers.
+ * boards is an array of all the boards
+ * each board is an array of 5 rows, each row contain 5 objects in the form
+ * {value: number, highlight: boolean} representing a number of the board
+ * and if it had been extracted.
+ *
+ * @param {File} inputFile
+ * @returns {Array} - [numbers, boards]
+ */
+function getInput(inputFile) {
+  const input = fs
+    .readFileSync(inputFile)
+    .toString('utf-8')
+    .trim()
+    .split('\n\n');
 
-// const testnum = test
-//   .shift()
-//   .split(',')
-//   .map((num) => +num);
+  const numbers = input
+    .shift()
+    .split(',')
+    .map((num) => +num);
 
-// const testboards = test.map((arr) =>
-//   arr.split('\n').map((row) =>
-//     row
-//       .split(' ')
-//       .filter((el) => el !== '')
-//       .map((val) => ({ value: +val, highlight: false })),
-//   ),
-// );
-
-const input = fs
-  .readFileSync('./input.txt')
-  .toString('utf-8')
-  .trim()
-  .split('\n\n');
-
-const numbers = input
-  .shift()
-  .split(',')
-  .map((num) => +num);
-
-const boards = input.map((arr) =>
-  arr.split('\n').map((row) =>
-    row
-      .split(' ')
-      .filter((el) => el !== '')
-      .map((val) => ({ value: +val, highlight: false })),
-  ),
-);
+  const boards = input.map((arr) =>
+    arr.split('\n').map((row) =>
+      row
+        .split(' ')
+        .filter((el) => el !== '')
+        .map((val) => ({ value: +val, highlight: false })),
+    ),
+  );
+  return [numbers, boards];
+}
 
 function checkWinner(board) {
-  const rows = board.length;
-  const cols = board[0].length;
+  // array to remember which columns to skip.
   const colSkip = {
     0: false,
     1: false,
@@ -50,34 +43,46 @@ function checkWinner(board) {
     3: false,
     4: false,
   };
-  // check rows
-  for (let i = 0; i < rows; i += 1) {
-    let count = 0;
-    for (let j = 0; j < cols; j += 1) {
-      if (board[i][j].highlight !== true) {
-        colSkip[j] = true;
-        break;
-      }
-      count += 1;
-    }
-    if (count === 5) return true;
-  }
-  // check colums
-  for (let i = 0; i < cols; i += 1) {
-    let count = 1;
-    // eslint-disable-next-line no-continue
-    if (colSkip[i]) continue;
-    for (let j = 0; j < rows; j += 1) {
-      if (board[j][i] !== true) {
-        break;
-      }
-      count += 1;
-    }
-    if (count === 5) return true;
-  }
+  // check for winning rows
+  if (
+    board.some((row) =>
+      row.every((element, index) => {
+        if (element.highlight) return true;
+        // if we find a non highlighted number we remember to skip checking the corresponding column
+        colSkip[index] = true;
+        return false;
+      }),
+    )
+  )
+    return true;
+
+  // check for winning columns
+  // we map each element of the first row to the corresponding column
+  // and we check if any of the columns has every element highlighted.
+  if (
+    board[0].some((_, colIndex) => {
+      // if the column index is in the skipColumn array, we skip the corrisponding column altogether.
+      if (colSkip[colIndex]) return false;
+      return board
+        .map((row) => row[colIndex])
+        .every((element) => element.highlight);
+    })
+  )
+    return true;
+
+  // if the board has no winning row or column
   return false;
 }
 
+/**
+ * Calculates the score of the board passed as first argument
+ * as the sum of all the numbers NOT extracted
+ * multiplied for the last number extracted passes as second argument.
+ *
+ * @param {Array} board
+ * @param {Number} num
+ * @returns {Number} - The score of the board
+ */
 function getScore(board, num) {
   const sum = board.reduce(
     (rowSum, row) =>
@@ -91,45 +96,26 @@ function getScore(board, num) {
   return sum * num;
 }
 
-function bingo(boardsarr, nums) {
-  for (let i = 0, numlen = nums.length; i < numlen; i += 1) {
-    for (
-      let j = 0, boardslen = boardsarr.length;
-      j < boardslen;
-      j += 1
-    ) {
-      for (
-        let k = 0, boardrows = boards[0].length;
-        k < boardrows;
-        k += 1
-      ) {
-        for (
-          let l = 0, rowlen = boards[0][0].length;
-          l < rowlen;
-          l += 1
-        ) {
-          if (boardsarr[j][k][l].value === nums[i])
-            // eslint-disable-next-line no-param-reassign
-            boardsarr[j][k][l].highlight = true;
-          if (i > 3) {
-            if (checkWinner(boardsarr[j])) {
-              console.log('Winner is board: ', j + 1);
-              console.log(
-                'Score is: ',
-                getScore(boardsarr[j], nums[i]),
-              );
-              return 0;
-            }
-          }
-        }
+function bingo(boards, numbers) {
+  numbers.find((number) =>
+    boards.find((board, boardNum) => {
+      board.forEach((row) => {
+        row.forEach((element) => {
+          // eslint-disable-next-line no-param-reassign
+          if (element.value === number) element.highlight = true;
+        });
+      });
+      if (checkWinner(board)) {
+        console.log('Winner is board: ', boardNum + 1);
+        console.log('Score is: ', getScore(board, number));
+        return true;
       }
-    }
-  }
-  console.log('No winners!');
-  return 0;
+      return false;
+    }),
+  );
 }
 
+const [numbers, boards] = getInput('./input.txt');
+const [testNumbers, testBoards] = getInput('./testCol.txt');
+bingo(testBoards, testNumbers);
 bingo(boards, numbers);
-// console.log(input);
-
-// console.log(numbers);
