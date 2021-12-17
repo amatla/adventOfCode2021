@@ -34,6 +34,11 @@ function getInput(inputFile) {
   return [numbers, boards];
 }
 
+/**
+ * Checks ifthe board passed as argument contains a winning row or column
+ * @param {Array} board
+ * @returns {boolean}
+ */
 function checkWinner(board) {
   // array to remember which columns to skip.
   const colSkip = {
@@ -43,12 +48,13 @@ function checkWinner(board) {
     3: false,
     4: false,
   };
+
   // check for winning rows
   if (
     board.some((row) =>
       row.every((element, index) => {
         if (element.highlight) return true;
-        // if we find a non highlighted number we remember to skip checking the corresponding column
+        // if we find a non highlighted number we remember to skip the check on the corresponding column
         colSkip[index] = true;
         return false;
       }),
@@ -77,7 +83,7 @@ function checkWinner(board) {
 /**
  * Calculates the score of the board passed as first argument
  * as the sum of all the numbers NOT extracted
- * multiplied for the last number extracted passes as second argument.
+ * multiplied for the last number extracted passed as second argument.
  *
  * @param {Array} board
  * @param {Number} num
@@ -95,27 +101,39 @@ function getScore(board, num) {
   );
   return sum * num;
 }
-
-function bingo(boards, numbers) {
-  numbers.find((number) =>
-    boards.find((board, boardNum) => {
-      board.forEach((row) => {
-        row.forEach((element) => {
-          // eslint-disable-next-line no-param-reassign
-          if (element.value === number) element.highlight = true;
+/**
+ * Returns the score of the first winning board in boardsArray
+ * @param {Array} boardsArray
+ * @param {Array} numbers
+ * @returns {Number}
+ */
+function solution1(boardsArray, numbers) {
+  const boards = [...boardsArray];
+  let result = 0;
+  numbers.find((number) => {
+    if (
+      boards.find((board) => {
+        board.forEach((row) => {
+          row.forEach((element) => {
+            // eslint-disable-next-line no-param-reassign
+            if (element.value === number) element.highlight = true;
+          });
         });
-      });
-      if (checkWinner(board)) {
-        console.log('Winner is board: ', boardNum + 1);
-        console.log('Score is: ', getScore(board, number));
-        return true;
-      }
-      return false;
-    }),
-  );
+        if (checkWinner(board)) {
+          result = getScore(board, number);
+          return true;
+        }
+        return false;
+      })
+    )
+      return number;
+    return undefined;
+  });
+  return result;
 }
 
-const [numbers, boards] = getInput('./input.txt');
-const [testNumbers, testBoards] = getInput('./testCol.txt');
-bingo(testBoards, testNumbers);
-bingo(boards, numbers);
+const [testNumbers, testBoards] = getInput('./test.txt');
+// console.log(solution1(testBoards, testNumbers));
+// const [numbers, boards] = getInput('./input.txt');
+// console.log(solution1(boards, numbers));
+console.log(solution1(testBoards, testNumbers));
