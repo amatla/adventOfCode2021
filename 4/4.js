@@ -82,58 +82,65 @@ function checkWinner(board) {
 
 /**
  * Calculates the score of the board passed as first argument
- * as the sum of all the numbers NOT extracted
- * multiplied for the last number extracted passed as second argument.
+ * as the sum of all the numbers NOT extracted.
  *
  * @param {Array} board
- * @param {Number} num
  * @returns {Number} - The score of the board
  */
-function getScore(board, num) {
-  const sum = board.reduce(
+function getScore(board) {
+  return board.reduce(
     (rowSum, row) =>
       rowSum +
-      row.reduce((colSum, col) => {
-        if (!col.highlight) return colSum + col.value;
-        return colSum;
+      row.reduce((sum, element) => {
+        if (!element.highlight) return sum + element.value;
+        return sum;
       }, 0),
     0,
   );
-  return sum * num;
 }
+
+/**
+ * Find this first winning board for the given number if one exist in the boards array.
+ *
+ * @param {Array} boards
+ * @param {Number} number
+ * @returns {Array|undefined} winning board if one is found, or undefined if not/
+ */
+function findBoard(boards, number, index) {
+  return boards.find((board) => {
+    board.forEach((row) => {
+      row.forEach((element) => {
+        // eslint-disable-next-line no-param-reassign
+        if (element.value === number) element.highlight = true;
+      });
+    });
+    // check for a winner only if at least 5 numbers have been extracted.
+    if (index > 4 && checkWinner(board)) return board;
+    return undefined;
+  });
+}
+
 /**
  * Returns the score of the first winning board in boardsArray
  * @param {Array} boardsArray
  * @param {Array} numbers
  * @returns {Number}
  */
-function solution1(boardsArray, numbers) {
-  const boards = [...boardsArray];
-  let result = 0;
-  numbers.find((number) => {
-    if (
-      boards.find((board) => {
-        board.forEach((row) => {
-          row.forEach((element) => {
-            // eslint-disable-next-line no-param-reassign
-            if (element.value === number) element.highlight = true;
-          });
-        });
-        if (checkWinner(board)) {
-          result = getScore(board, number);
-          return true;
-        }
-        return false;
-      })
-    )
-      return number;
+function solution1(boards, numbers) {
+  const localBoards = [...boards];
+  let board = [];
+
+  const number = numbers.find((num, index) => {
+    board = findBoard(localBoards, num, index);
+    if (board) return num;
     return undefined;
   });
-  return result;
+
+  if (number) return number * getScore(board);
+  console.log('No winner found!');
+  return 0;
 }
 
-const [testNumbers, testBoards] = getInput('./test.txt');
-// console.log(solution1(testBoards, testNumbers));
-// const [numbers, boards] = getInput('./input.txt');
-// console.log(solution1(boards, numbers));
-console.log(solution1(testBoards, testNumbers));
+// const [testNumbers, testBoards] = getInput('./test.txt');
+const [numbers, boards] = getInput('./input.txt');
+console.log(solution1(boards, numbers));
