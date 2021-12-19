@@ -35,11 +35,11 @@ function getInput(inputFile) {
 }
 
 /**
- * Checks ifthe board passed as argument contains a winning row or column
+ * Checks if the board passed as argument contains a winning row or column
  * @param {Array} board
  * @returns {boolean}
  */
-function checkWinner(board) {
+function isWinner(board) {
   // array to remember which columns to skip.
   const colSkip = {
     0: false,
@@ -67,7 +67,7 @@ function checkWinner(board) {
   // and we check if any of the columns has every element highlighted.
   if (
     board[0].some((_, colIndex) => {
-      // if the column index is in the skipColumn array, we skip the corrisponding column altogether.
+      // if the column index is in the skipColumn array, we skip the corresponding column altogether.
       if (colSkip[colIndex]) return false;
       return board
         .map((row) => row[colIndex])
@@ -100,24 +100,22 @@ function getScore(board) {
 }
 
 /**
- * Find this first winning board for the given number if one exist in the boards array.
+ * Check if the board passed as first argument contains the number passed as second argument.
+ * If it does higlhlight the number on the board.
+ * Returns a new board with the highlighted element.
  *
- * @param {Array} boards
- * @param {Number} number
- * @returns {Array|undefined} winning board if one is found, or undefined if not/
+ * @param {Array} board
+ * @param {Number} num
+ * @returns {Array} updated board.
  */
-function findBoard(boards, number, index) {
-  return boards.find((board) => {
-    board.forEach((row) => {
-      row.forEach((element) => {
-        // eslint-disable-next-line no-param-reassign
-        if (element.value === number) element.highlight = true;
-      });
-    });
-    // check for a winner only if at least 5 numbers have been extracted.
-    if (index > 4 && checkWinner(board)) return board;
-    return undefined;
-  });
+function updateBoard(board, num) {
+  return board.map((row) =>
+    row.map((element) => {
+      if (element.value === num)
+        return { value: element.value, highlight: true };
+      return element;
+    }),
+  );
 }
 
 /**
@@ -128,19 +126,36 @@ function findBoard(boards, number, index) {
  */
 function solution1(boards, numbers) {
   const localBoards = [...boards];
-  let board = [];
+  let winningBoard = [];
 
-  const number = numbers.find((num, index) => {
-    board = findBoard(localBoards, num, index);
-    if (board) return num;
-    return undefined;
-  });
+  // updates the localBoards array highlighting the current number in each board.
+  // if a board is the winner stops and stores the winning board.
+  const findBoard = (num, index) =>
+    localBoards.some((board, boardIndex) => {
+      const currentBoard = updateBoard(board, num);
+      // if at least 5 numbers have been extracted check if the current board is winning.
+      if (index >= 4 && isWinner(currentBoard)) {
+        winningBoard = currentBoard;
+        return true;
+      }
+      // if the current board is not winning, update the boards array with the current updated board.
+      localBoards[boardIndex] = currentBoard;
+      return false;
+    });
 
-  if (number) return number * getScore(board);
-  console.log('No winner found!');
+  // find the first number for which a winning board exist.
+  const winningNum = numbers.find((num, index) =>
+    findBoard(num, index),
+  );
+
+  // if a number is found return the score of the winning board.
+  if (winningNum !== undefined)
+    return getScore(winningBoard) * winningNum;
+  // if not return 0.
+  console.log('No winners found.');
   return 0;
 }
 
-// const [testNumbers, testBoards] = getInput('./test.txt');
-const [numbers, boards] = getInput('./input.txt');
-console.log(solution1(boards, numbers));
+const [testNumbers, testBoards] = getInput('./test.txt');
+// const [numbers, boards] = getInput('./input.txt');
+console.log(solution1(testBoards, testNumbers));
