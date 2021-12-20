@@ -127,6 +127,7 @@ function updateBoard(board, num) {
 function solution1(boards, numbers) {
   const localBoards = [...boards];
   let winningBoard = [];
+  let winningNumber = 0;
 
   // updates the localBoards array highlighting the current number in each board.
   // if a board is the winner stops and stores the winning board.
@@ -136,6 +137,7 @@ function solution1(boards, numbers) {
       // if at least 5 numbers have been extracted check if the current board is winning.
       if (index >= 4 && isWinner(currentBoard)) {
         winningBoard = currentBoard;
+        winningNumber = num;
         return true;
       }
       // if the current board is not winning, update the boards array with the current updated board.
@@ -144,18 +146,49 @@ function solution1(boards, numbers) {
     });
 
   // find the first number for which a winning board exist.
-  const winningNum = numbers.find((num, index) =>
-    findBoard(num, index),
-  );
-
   // if a number is found return the score of the winning board.
-  if (winningNum !== undefined)
-    return getScore(winningBoard) * winningNum;
+  if (numbers.some((num, index) => findBoard(num, index)))
+    return getScore(winningBoard) * winningNumber;
+  // if not return 0.
+  console.log('No winners found.');
+  return 0;
+}
+
+function solution2(boards, numbers) {
+  let localBoards = [...boards];
+  let winningBoard = [];
+  let winningNumber;
+  const numLen = numbers.length - 1;
+
+  const findBoard = (num, index) => {
+    console.log(`Number is ${num}`);
+    localBoards.forEach((board, boardIndex) => {
+      const newBoards = [];
+      const currentBoard = updateBoard(board, num);
+      if (isWinner(currentBoard)) {
+        winningBoard = currentBoard;
+        winningNumber = num;
+        console.log(`winner found. winning num is ${winningNumber}`);
+      } else newBoards.push(currentBoard);
+    });
+    localBoards = newBoards;
+
+    console.log(`localboard length is ${localBoards.length}`);
+    if (localBoards.length === 0 || index === numLen)
+      return winningNumber;
+    return undefined;
+  };
+  numbers.find((num, index) => findBoard(num, index));
+  console.log(`winning number is ${winningNumber}`);
+  console.log('winning board is: ', winningBoard);
+  if (winningNumber !== undefined)
+    return getScore(winningBoard) * winningNumber;
   // if not return 0.
   console.log('No winners found.');
   return 0;
 }
 
 const [testNumbers, testBoards] = getInput('./test.txt');
-// const [numbers, boards] = getInput('./input.txt');
-console.log(solution1(testBoards, testNumbers));
+const [numbers, boards] = getInput('./input.txt');
+// console.log(solution1(boards, numbers));
+console.log(solution2(testBoards, testNumbers));
